@@ -1,0 +1,53 @@
+trigger: none
+
+pool:
+  VmImage: ubuntu-latest
+
+stages:
+- stage: DEV
+  displayName: Ambiente DEV
+  jobs:
+
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build and push docker image to ACR
+      inputs:
+        containerRegistry: 'ServiceConnectionAppTest' #Configurar service Connection para o ACR
+        repository: 'dockerdemo' #Nome do Repositório no ACR
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+  - job:
+    displayName: Deploy
+    dependsOn: Build
+    steps:
+
+    - checkout: self
+      persistCredentials: true
+      clean: true
+
+    - task: CmdLine@2
+      displayName: Replace variables
+      inputs:
+        script: |
+          echo Tag da imagem = $(Build.BuildId)
+          tag=$(Build.BuildId)
+          sed -i "s|_ImageTag_|$tag|g" AKS/deployment.yaml
+
+    - task: CmdLine@2
+      displayName: Update Image Tag
+      inputs:
+        script: |
+          git config --global user.email "azureuser@azuredevops.com"
+          git config --global user.name "azureuser"
+          echo "CAT DEPLOYMENT.YAML"
+          cat AKS/deployment.yaml
+          git add .
+          git commit -m "Image tag update $(Build.BuildId)"
+          git push origin HEAD:refs/heads/master
+

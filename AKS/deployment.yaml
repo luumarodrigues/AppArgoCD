@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  labels:
+    app: appteste
+spec:
+  replicas: 1 #here is the configuration for the actual agent always running
+  selector:
+    matchLabels:
+      app: appteste
+  template:
+    metadata:
+      labels:
+        app: appteste
+    spec:
+      containers:
+      - name: appteste
+        image: appteste.azurecr.io/dockerdemo:1347
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://*:8080
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-volume
+      volumes:
+      - name: docker-volume
+        hostPath:
+          path: /var/run/docker.sock

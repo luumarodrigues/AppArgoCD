@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: appteste
+  # You'll usually want to add your resources to the argocd namespace.
+  namespace: argocd
+  # Add labels to your application object.
+  labels:
+    name: appteste
+spec:
+  # The project the application belongs to.
+  project: default
+  # Source of the application manifests
+  source:
+    repoURL: https://luumarodrigues@dev.azure.com/luumarodrigues/Bradesco/_git/DockerDemo
+    targetRevision: HEAD
+    path: AKS/ 
+  # Destination cluster and namespace to deploy the application
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: appteste
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+
+    automated:
+      #By default, changes made to the live clister will not trigger autoated sync
+      selfHeal: true
+      #By default, automatic sync will not delete resources
+      prune: true
+      
+
